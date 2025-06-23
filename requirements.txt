@@ -6,4 +6,4 @@ pyyaml
 torch
 transformers
 
-git+https://github.com/EnricoSimionato/Experiment-Orchestrator.git@master#egg=exporch
+#git+https://github.com/EnricoSimionato/Experiment-Orchestrator.git@master#egg=exporch
