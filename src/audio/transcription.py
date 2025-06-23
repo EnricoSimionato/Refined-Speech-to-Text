@@ -1,13 +1,14 @@
 #from exporch import get_available_device
+from pathlib import Path
 import time
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 
-convertible_formats = [".mp3"]
+transcribable_formats = [".mp3"]
 
 
-def convert_to_text(audio_name: str, config: dict, pipe = None) -> dict:
+def convert_to_text(audio_name: Path, config: dict, pipe = None) -> dict:
     """
     Converts the audio file to its textual transcription.
 
@@ -25,8 +26,9 @@ def convert_to_text(audio_name: str, config: dict, pipe = None) -> dict:
         torch_dtype = torch.float32
         batch_size = config["batch_size"] if "batch_size" in config.keys() else None
         chunk_length_s = config["chunk_length_s"] if "chunk_length_s" in config.keys() else None
+        # TODO fix the problem with exporch and python 3.11
         #device = get_available_device(config["device"] if "device" in config.keys() else "cuda")
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = config["device"]
         model_id = config["model_id"] if "model_id" in config.keys() else "openai/whisper-large-v3"
 
         init_loading = time.time()

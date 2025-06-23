@@ -1,3 +1,4 @@
+dotenv
 ffmpeg-python
 huggingface_hub
 moviepy==2.2.1

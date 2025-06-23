@@ -165,6 +165,10 @@ cython_debug/
 *.iml
 
 processing/inputs/*
-processing/outputs/*
-!processing/inputs/.gitkeep
-!processing/outputs/.gitkeep
+!processing/inputs/test.mp3
+
+processing/outputs/raw/*
+!processing/outputs/raw/.gitkeep
+
+processing/outputs/refined/*
+!processing/outputs/refined/.gitkeep
