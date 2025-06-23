@@ -1,0 +1,25 @@
+Install python 3
+
+Install ffmpeg
+
+    brew install ffmpeg
+
+    or
+
+    sudo apt update && sudo apt install ffmpeg to install ffmpeg
+
+(Optional) Create and activate a conda environment for the project
+
+    conda create -n refined_s2t
+
+    conta activate refined_s2t
+
+Download the packages required by the code to run
+
+    sudo pip install -r requirements.txt
+
+Export your Hugging Face access token as environment variable
+
+    export HF_TOKEN=your_hf_token
+
+Run the code from the directory src

@@ -1,0 +1,9 @@
+ffmpeg-python
+huggingface_hub
+moviepy
+pydub
+pyyaml
+torch
+transformers
+
+git+https://github.com/EnricoSimionato/Experiment-Orchestrator.git@master#egg=exporch
