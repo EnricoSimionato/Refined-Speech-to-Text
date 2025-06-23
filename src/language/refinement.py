@@ -141,9 +141,9 @@ def load_model(
 
 if __name__ == "__main__":
     config = {
-        "device": "mps",
+        "device": "cuda",
         "quantization_refiner": "8bits",
-        "model_id_refiner": "Mistral-Small-3.2-24B-Instruct-2506",
+        "model_id_refiner": "meta-llama/Llama-3.1-8B-Instruct",
         "model_id_transcriber": "openai/whisper-large-v3",
         "refine": True,
         #"use_flash_attention": true
