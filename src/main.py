@@ -3,14 +3,15 @@ from audio.conversion import change_audio_format
 from audio.chunking import ChunkedAudio, ChunkedText
 from audio.transcription import convert_to_text
 from audio.transcription import convertible_formats
+from dotenv import load_dotenv
 import yaml
 import os
 from pathlib import Path
 
 
-path_to_config = "../processing/config/CONFIG.yaml"
-path_to_inputs = "../processing/inputs"
-path_to_outputs = "../processing/outputs"
+path_to_config = "processing/config/CONFIG.yaml"
+path_to_inputs = "processing/inputs"
+path_to_outputs = "processing/outputs"
 
 
 if __name__ == "__main__":
@@ -18,10 +19,12 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as f:
         config = yaml.safe_load(f)
 
+    # Automatically loading from .env if present in root
+    load_dotenv()
     # Logging in HuggingFace
     hf_token = os.getenv("HF_TOKEN")
     if hf_token is None:
-        raise ValueError("HUGGINGFACE_TOKEN not found in environment variables.")
+        raise ValueError("HF_TOKEN not found in environment variables.")
     hf_login(hf_token)
 
     pipe = None
