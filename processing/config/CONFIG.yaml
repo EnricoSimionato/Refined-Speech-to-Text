@@ -1,5 +1,5 @@
-batch_size: 4
-chunk_length_s: 30
+#batch_size: 4
+#chunk_length_s: 30
 device: "mps"
 model_id: "openai/whisper-large-v3"
 

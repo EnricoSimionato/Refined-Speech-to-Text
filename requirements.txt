@@ -1,6 +1,6 @@
 ffmpeg-python
 huggingface_hub
-moviepy
+moviepy==2.2.1
 pydub
 pyyaml
 torch

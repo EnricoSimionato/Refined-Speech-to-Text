@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, override, Union
+from typing import List, Union
 import ffmpeg
 
 class ChunkedResource:
@@ -69,7 +69,6 @@ class ChunkedAudio(ChunkedResource):
         self.chunk_length_s = chunk_length_s
         self.output_format = output_format
 
-    @override
     def chunk_resource(self):
         """
         Splits an audio file into chunks of specified length using ffmpeg.
