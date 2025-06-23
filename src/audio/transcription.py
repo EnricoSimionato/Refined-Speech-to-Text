@@ -18,7 +18,18 @@ def convert_to_text(audio_name: Path, config: dict, pipe = None) -> dict:
         pipe (transformers.pipeline): The pipeline to use, if already instantiated.
 
     Returns:
-        dict: The transcription of the audio file.
+        dict: The transcription of the audio file,
+            the pipeline transcribing it,
+            the preparation time of the pipeline,
+            the transcription time of the audio.
+
+        >>  {
+        >>      "pipeline": pipe,
+        >>      "transcript": transcript,
+        >>      "preparation_time": preparation_time,
+        >>      "transcription_time": transcription_time
+        >>  }
+    }
     """
 
     preparation_time = 0
@@ -29,7 +40,7 @@ def convert_to_text(audio_name: Path, config: dict, pipe = None) -> dict:
         # TODO fix the problem with exporch and python 3.11
         #device = get_available_device(config["device"] if "device" in config.keys() else "cuda")
         device = config["device"]
-        model_id = config["model_id"] if "model_id" in config.keys() else "openai/whisper-large-v3"
+        model_id = config["model_id_transcriber"] if "model_id_transcriber" in config.keys() else "openai/whisper-large-v3"
 
         init_loading = time.time()
         model = AutoModelForSpeechSeq2Seq.from_pretrained(

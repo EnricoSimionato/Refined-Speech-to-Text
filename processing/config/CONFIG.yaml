@@ -2,5 +2,9 @@
 #chunk_length_s: 30
 #chunk_window: 60
 device: "cuda"
-model_id: "openai/whisper-large-v3"
+quantization_refiner: "8bits" # 4bits or 8bits
+#float16_refiner: true
+model_id_refiner: "Mistral-Small-3.2-24B-Instruct-2506"
+model_id_transcriber: "openai/whisper-large-v3"
 refine: true
+#use_flash_attention: true

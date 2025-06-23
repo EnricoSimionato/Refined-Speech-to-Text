@@ -7,13 +7,14 @@ from dotenv import load_dotenv
 import yaml
 import os
 from pathlib import Path
+from language.refinement import refine_text
 from typing import Dict
 import transformers
 
-path_to_config = "processing/config/CONFIG.yaml"
-path_to_inputs = "processing/inputs"
-path_to_raw_outputs = "processing/outputs/raw"
-path_to_refined_outputs = "processing/outputs/refined"
+path_to_config = Path("processing/config/CONFIG.yaml")
+path_to_inputs = Path("processing/inputs")
+path_to_raw_outputs = Path("processing/outputs/raw")
+path_to_refined_outputs = Path("processing/outputs/refined")
 
 
 def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config: Dict) -> transformers.pipeline:
@@ -24,11 +25,10 @@ def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config:
     preparation_time = 0
     transcription_time = 0
 
-    input_file = Path(audio_file)
-    base_path = audio_file.parent.parent
-    output_name = input_file.stem + "_raw_transcript.txt"  # stem = file_name without extension
-    output_file = base_path / "outputs" / output_name
+    output_name = audio_file.stem + "_raw_transcript.txt"  # stem = file_name without extension
+    output_file = path_to_raw_outputs / output_name
 
+    # TODO Chunking needs to be tested
     if "chunk_window" in config.keys():
         print(f"Converting: {audio_file} ... \nIt will be processed split in chunks")
         # Chunking the audio
@@ -46,9 +46,8 @@ def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config:
             preparation_time += response["preparation_time"]
             transcription_time += response["transcription_time"]
 
-            base_path = chunk.parent.parent
             output_chunk_name = chunk.stem + "_raw_transcript.txt"
-            output_chunk = base_path / "outputs" / output_chunk_name
+            output_chunk = path_to_raw_outputs / output_chunk_name
 
             output_chunk.write_text(response["transcript"]["text"].strip(), encoding="utf-8")
             print(f"Chunk {chunk} converted and stored in {output_chunk}")
@@ -71,7 +70,7 @@ def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config:
         output_file.write_text(response["transcript"]["text"].strip(), encoding="utf-8")
 
     print("###########################################################################")
-    print(f"{audio_file} converted and stored in {output_name}!")
+    print(f"{audio_file} converted and stored in {output_file}!")
     print(f"Preparation time: {preparation_time}")
     print(f"Transcription time: {transcription_time}")
     print("###########################################################################")
@@ -79,14 +78,31 @@ def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config:
     return pipe
 
 
-def refine_text_file(text_file: Path) -> transformers.pipeline:
-    pass
+def refine_text_file(text_file: Path, pipe: transformers.pipeline, config: Dict) -> transformers.pipeline:
+    output_name = Path(str(text_file.stem).replace("_raw_transcript", "refined_transcript") + ".txt")
+    output_file = path_to_refined_outputs / output_name
+
+    print(f"Refining: {text_file} ...")
+    # Converting audio into text
+    response = refine_text(text_file, config, pipe)
+    pipe = response["pipeline"]
+    preparation_time = response["preparation_time"]
+    transcription_time = response["transcription_time"]
+    output_file.write_text(response["transcript"]["text"].strip(), encoding="utf-8")
+
+    print("###########################################################################")
+    print(f"{text_file} refined and stored in {output_file}!")
+    print(f"Preparation time: {preparation_time}")
+    print(f"Transcription time: {transcription_time}")
+    print("###########################################################################")
+
+    return pipe
 
 
 if __name__ == "__main__":
     # Loading the configuration file
     with open(path_to_config, "r") as f:
-        config = yaml.safe_load(f)
+        configuration = yaml.safe_load(f)
 
     # Automatically loading from .env if present in root
     load_dotenv()
@@ -99,18 +115,17 @@ if __name__ == "__main__":
     # Iterating over the contained in the inputs folder, getting the transcript of each audio file contained in the
     # inputs directory
     transcription_pipeline = None
-    inputs_folder = Path(path_to_inputs)
-    for file in inputs_folder.iterdir():
+    for file in path_to_inputs.iterdir():
         if file.is_file():
-            transcription_pipeline = transcribe_audio_file(file, transcription_pipeline, config)
+            transcription_pipeline = transcribe_audio_file(file, transcription_pipeline, configuration)
     print("Transcription routine ended")
 
     # Iterating over the contained in the raw outputs folder, getting the refined text of each text file contained in
     # the raw outputs directory
-    refinement_pipeline = None
-    raw_inputs_folder = Path(path_to_raw_outputs)
-    if "refiner" in config.keys() and config["refine"]:
-        for file in raw_inputs_folder.iterdir():
+    refinement_model = None
+    refinement_tokenizer = None
+    if "refine" in configuration.keys() and configuration["refine"]:
+        for file in path_to_raw_outputs.iterdir():
             if file.is_file():
-                refinement_pipeline = refine_text_file(file)
+                refinement_pipeline = refine_text(file, configuration, refinement_model, refinement_tokenizer)
         print("Refinement routine ended")
