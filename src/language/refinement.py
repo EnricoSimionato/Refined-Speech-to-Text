@@ -78,7 +78,7 @@ def refine_text(
         print("Refinement pipeline ready")
 
     # Refining the text
-    refined_transcript = refinement_pipeline(messages, max_new_tokens=10000)[0][0]["generated_text"][-1]["content"]
+    refined_transcript = refinement_pipeline(messages, max_new_tokens=1000)[0][0]["generated_text"][-1]["content"]
     parts = refined_transcript.split("\n\n", 1)
     refined_transcript = parts[1].strip() if len(parts) > 1 else refined_transcript
     end_refinement = time.time()
@@ -265,7 +265,7 @@ if __name__ == "__main__":
         "device": "mps",
         #"quantization_refiner": "8bit",
         "float16_refiner": True,
-        "model_id_refiner": "google/gemma-3-4b-it",
+        "model_id_refiner": "google/gemma-3-1b-it",
         "model_id_transcriber": "openai/whisper-large-v3",
         "refine": True,
         #"use_flash_attention": true
