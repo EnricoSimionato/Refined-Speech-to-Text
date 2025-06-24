@@ -8,7 +8,7 @@ import yaml
 import os
 from pathlib import Path
 from language.refinement import refine_text
-from typing import Dict
+from typing import Dict, List
 import transformers
 
 path_to_config = Path("processing/config/CONFIG.yaml")
@@ -17,7 +17,7 @@ path_to_raw_outputs = Path("processing/outputs/raw")
 path_to_refined_outputs = Path("processing/outputs/refined")
 
 
-def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config: Dict) -> transformers.pipeline:
+def transcribe_audio_file(audio_file: Path, config: Dict, pipe: transformers.pipeline) -> transformers.pipeline:
     # Changing the format to a transcribable one
     if audio_file.suffix not in transcribable_formats:
         audio_file = change_audio_format(audio_file, "mp3")
@@ -78,14 +78,19 @@ def transcribe_audio_file(audio_file: Path, pipe: transformers.pipeline, config:
     return pipe
 
 
-def refine_text_file(text_file: Path, pipe: transformers.pipeline, config: Dict) -> transformers.pipeline:
+def refine_text_file(text_file: Path, config: Dict, pipelines: List[transformers.pipelines | str] = None) -> transformers.pipeline:
     output_name = Path(str(text_file.stem).replace("_raw_transcript", "refined_transcript") + ".txt")
     output_file = path_to_refined_outputs / output_name
 
     print(f"Refining: {text_file} ...")
     # Converting audio into text
-    response = refine_text(text_file, config, pipe)
-    pipe = response["pipeline"]
+    response = refine_text(text_file, config, *pipelines)
+
+    language_detection_pipeline = response["language_detection_pipeline"]
+    translator_pipeline = response["translator_pipeline"]
+    language_translator = response["language_translator"]
+    refining_pipeline = response["refined_pipeline"]
+
     preparation_time = response["preparation_time"]
     transcription_time = response["transcription_time"]
     output_file.write_text(response["transcript"]["text"].strip(), encoding="utf-8")
@@ -96,7 +101,7 @@ def refine_text_file(text_file: Path, pipe: transformers.pipeline, config: Dict)
     print(f"Transcription time: {transcription_time}")
     print("###########################################################################")
 
-    return pipe
+    return language_detection_pipeline, translator_pipeline, language_translator, refining_pipeline
 
 
 if __name__ == "__main__":
@@ -117,15 +122,14 @@ if __name__ == "__main__":
     transcription_pipeline = None
     for file in path_to_inputs.iterdir():
         if file.is_file():
-            transcription_pipeline = transcribe_audio_file(file, transcription_pipeline, configuration)
+            transcription_pipeline = transcribe_audio_file(file, configuration, transcription_pipeline)
     print("Transcription routine ended")
 
     # Iterating over the contained in the raw outputs folder, getting the refined text of each text file contained in
     # the raw outputs directory
-    refinement_pipeline = None
-    language_detection_pipeline = None
+    pipelines = None
     if "refine" in configuration.keys() and configuration["refine"]:
         for file in path_to_raw_outputs.iterdir():
             if file.is_file():
-                refinement_pipeline = refine_text(file, configuration, refinement_pipeline, language_detection_pipeline)
+                pipelines = refine_text(file, configuration, pipelines)
         print("Refinement routine ended")

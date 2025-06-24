@@ -11,23 +11,29 @@ from transformers.utils import is_flash_attn_2_available
 def refine_text(
         text_file: Path,
         config: dict,
+        language_detection_pipeline: transformers.pipeline = None,
+        translator_pipeline: transformers.pipeline = None,
+        language: str = None,
         refinement_pipeline: transformers.pipeline = None,
-        language_detection_pipeline: transformers.pipeline = None
 ) -> Dict:
+    """
+    Refines text using refinement pipeline.
+
+    Args:
+        text_file (Path): Path to the text file to be refined.
+        config (dict): Dictionary of configuration parameters.
+        language_detection_pipeline (transformers.pipeline): Loaded transformer pipeline for language detection.
+        translator_pipeline (transformers.pipeline): Loaded transformer pipeline for translation of the prompt.
+        language (str): Language of the loaded translator_pipeline.
+        refinement_pipeline (transformers.pipeline): Loaded transformer pipeline for refinement.
+    """
+
+    # Loading the raw transcript
+    raw_transcript = Path(text_file).read_text()
+
+    # Loading the language detection pipeline, if needed
     preparation_time = 0
-    if not refinement_pipeline:
-        model_id = config["model_id_refiner"] if "model_id_refiner" in config.keys() else "google/gemma-3-1b-it"
-        device = get_available_device(config["device"] if "device" in config.keys() else "cuda")
-
-        # Loading the refinement pipeline
-        init_loading = time.time()
-        refinement_pipeline = pipeline("text-generation", model=model_id, device=device, torch_dtype=torch.bfloat16)
-        end_loading = time.time()
-        preparation_time += end_loading - init_loading
-        print("Refinement pipeline ready")
-
     if language_detection_pipeline is None:
-        # Loading the language detection pipeline
         init_loading = time.time()
         model_ckpt = "papluca/xlm-roberta-base-language-detection"
         language_detection_pipeline = pipeline("text-classification", model=model_ckpt)
@@ -35,19 +41,13 @@ def refine_text(
         preparation_time += end_loading - init_loading
         print("Language detection pipeline ready")
 
-    # Loading the raw transcript
-    raw_transcript = Path(text_file).read_text()
-
     # Detecting the language
     init_refinement = time.time()
     lang = language_detection_pipeline(raw_transcript, top_k=1, truncation=True)[0]["label"]
-    translator_pipeline = pipeline(f"translation_en_to_{lang}", model=f"Helsinki-NLP/opus-mt-en-{lang}")
 
-    model = refinement_pipeline.model
-    max_context_length = max(
-        getattr(model.config, "max_position_embeddings", 0),
-        refinement_pipeline.tokenizer.model_max_length
-    )
+    # Loading the translator pipeline, if needed
+    if translator_pipeline is None or language != lang:
+        translator_pipeline = pipeline(f"translation_en_to_{lang}", model=f"Helsinki-NLP/opus-mt-en-{lang}")
 
     # Defining the prompt to input to the model
     refinement_marker = "<RT>"
@@ -67,6 +67,16 @@ def refine_text(
         ],
     ]
 
+    # Loading the refinement pipeline, if needed
+    if not refinement_pipeline:
+        model_id = config["model_id_refiner"] if "model_id_refiner" in config.keys() else "google/gemma-3-1b-it"
+        device = get_available_device(config["device"] if "device" in config.keys() else "cuda")
+        init_loading = time.time()
+        refinement_pipeline = pipeline("text-generation", model=model_id, device=device, torch_dtype=torch.bfloat16)
+        end_loading = time.time()
+        preparation_time += end_loading - init_loading
+        print("Refinement pipeline ready")
+
     # Refining the text
     refined_transcript = refinement_pipeline(messages, max_new_tokens=10000)[0][0]["generated_text"][-1]["content"]
     parts = refined_transcript.split("\n\n", 1)
@@ -76,6 +86,8 @@ def refine_text(
 
     return {
         "language_detection_pipeline": language_detection_pipeline,
+        "translator_pipeline": translator_pipeline,
+        "language_translator": lang,
         "refined_pipeline": refinement_pipeline,
         "refined_transcript": refined_transcript,
         "preparation_time": preparation_time,
