@@ -122,10 +122,10 @@ if __name__ == "__main__":
 
     # Iterating over the contained in the raw outputs folder, getting the refined text of each text file contained in
     # the raw outputs directory
-    refinement_model = None
-    refinement_tokenizer = None
+    refinement_pipeline = None
+    language_detection_pipeline = None
     if "refine" in configuration.keys() and configuration["refine"]:
         for file in path_to_raw_outputs.iterdir():
             if file.is_file():
-                refinement_pipeline = refine_text(file, configuration, refinement_model, refinement_tokenizer)
+                refinement_pipeline = refine_text(file, configuration, refinement_pipeline, language_detection_pipeline)
         print("Refinement routine ended")

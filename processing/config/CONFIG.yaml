@@ -2,9 +2,9 @@
 #chunk_length_s: 30
 #chunk_window: 60
 device: "cuda"
-quantization_refiner: "8bits" # 4bits or 8bits
-#float16_refiner: true
-model_id_refiner: "meta-llama/Llama-3.1-8B-Instruct"
+#quantization_refiner: "8bits" # 4bits or 8bits
+float16_refiner: true
+model_id_refiner: "google/gemma-3-4b-it"
 model_id_transcriber: "openai/whisper-large-v3"
 refine: true
 #use_flash_attention: true

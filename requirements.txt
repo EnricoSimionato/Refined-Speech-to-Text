@@ -6,7 +6,8 @@ huggingface_hub
 moviepy==2.2.1
 pydub
 pyyaml
+sentencepiece
 torch
 transformers
 
-#git+https://github.com/EnricoSimionato/Experiment-Orchestrator.git@master#egg=exporch
+git+https://github.com/EnricoSimionato/Experiment-Orchestrator.git@master#egg=exporch
