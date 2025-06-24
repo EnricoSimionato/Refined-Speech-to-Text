@@ -165,6 +165,7 @@ cython_debug/
 *.iml
 
 processing/inputs/*
+!processing/inputs/test.m4a
 !processing/inputs/test.mp3
 
 processing/outputs/raw/*

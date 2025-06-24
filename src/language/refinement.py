@@ -270,7 +270,7 @@ if __name__ == "__main__":
         "refine": True,
         #"use_flash_attention": true
     }
-    test_file = Path("test.txt")
+    test_file = Path("outputs/raw/test.txt")
     resp = refine_text(test_file, config, None)
 
     print(resp["refined_transcript"])
