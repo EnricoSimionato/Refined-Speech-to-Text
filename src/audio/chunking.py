@@ -6,7 +6,7 @@ class ChunkedResource:
     """
     Chunked resource.
     """
-    def __init__(self, path: str | Path, chunks_paths: List[str | Path] = None):
+    def __init__(self, path: Path, chunks_paths: List[Path] = None):
         self.path = path
         self.chunks_paths = chunks_paths if chunks_paths else []
 
@@ -103,8 +103,8 @@ class ChunkedAudio(ChunkedResource):
 class ChunkedText(ChunkedResource):
     def __init__(
             self,
-            path: str | Path,
-            chunks_paths: List[str | Path] = None,
+            path: Path,
+            chunks_paths: List[Path] = None,
             chunk_length_char: int = 100
     ):
         super().__init__(path, chunks_paths)

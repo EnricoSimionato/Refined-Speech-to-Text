@@ -78,7 +78,7 @@ def transcribe_audio_file(audio_file: Path, config: Dict, pipe: transformers.pip
     return pipe
 
 
-def refine_text_file(text_file: Path, config: Dict, pipelines: List[transformers.pipelines | str] = None) -> transformers.pipeline:
+def refine_text_file(text_file: Path, config: Dict, pipelines = None) -> transformers.pipeline:
     output_name = Path(str(text_file.stem).replace("_raw_transcript", "refined_transcript") + ".txt")
     output_file = path_to_refined_outputs / output_name
 
